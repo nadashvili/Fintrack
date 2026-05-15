@@ -4,14 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Finance Tracker · პერსონალური ფინანსები</title>
-
-<!-- PWA Meta Tags -->
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#d9a04e">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="apple-touch-icon" href="applogos.png">
-
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -26,7 +18,7 @@
         },
         colors: {
           sand: { 50:'#fdf8f0', 100:'#f9eedb', 200:'#f1d9b0', 300:'#e5be7e', 400:'#d9a04e', 500:'#cc8530', 600:'#b56d22', 700:'#93541c', 800:'#76421c', 900:'#5f361a' },
-          slate2: { 800:'#1e2538', 850:'#161b2a', 900:'#0f1322', 950:'#080a14' },
+          slate2: { 800:'#1a1f2e', 850:'#141927', 900:'#0e1220', 950:'#080c17' },
         }
       }
     }
@@ -34,39 +26,41 @@
 </script>
 <style>
   :root {
-    --bg: #0f1322; --bg2: #161b2a; --bg3: #1e2538;
-    --card: rgba(30, 37, 56, 0.7); --card2: #242d46;
+    --bg: #0e1220; --bg2: #141927; --bg3: #1a1f2e;
+    --card: #1e2538; --card2: #232b3e;
     --text: #e8dcc8; --text2: #9ba3be; --text3: #5c6482;
     --accent: #d9a04e; --accent2: #e8b86d; --accent3: #c4873a;
     --green: #4ade80; --red: #f87171; --blue: #60a5fa;
-    --border: rgba(255,255,255,0.06);
-    --glow: rgba(217,160,78,0.12);
-    --blur: blur(12px);
+    --border: rgba(255,255,255,0.07);
+    --glow: rgba(217,160,78,0.15);
   }
   .light-mode {
-    --bg: #f7f4ed; --bg2: #eae3d2; --bg3: #dfd6be;
-    --card: rgba(255, 255, 255, 0.8); --card2: #fdfaf4;
-    --text: #231e1c; --text2: #65594f; --text3: #958475;
+    --bg: #f5f0e8; --bg2: #ede7d9; --bg3: #e4dccb;
+    --card: #ffffff; --card2: #f9f4ec;
+    --text: #2a2320; --text2: #6b5e52; --text3: #9b8878;
     --accent: #b5671a; --accent2: #c97b2a; --accent3: #9a5512;
-    --border: rgba(0,0,0,0.06);
-    --glow: rgba(181,103,26,0.08);
-    --blur: blur(12px);
+    --border: rgba(0,0,0,0.08);
+    --glow: rgba(181,103,26,0.1);
   }
   * { box-sizing: border-box; }
-  html, body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height:100vh; transition: background 0.3s ease; }
-  
-  /* Modern Glassmorphism Card Style */
+  html, body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height:100vh; }
+  .font-display { font-family: 'Syne', sans-serif; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width:6px; }
+  ::-webkit-scrollbar-track { background: var(--bg2); }
+  ::-webkit-scrollbar-thumb { background: var(--text3); border-radius:3px; }
+
+  /* Cards */
   .card {
     background: var(--card);
-    backdrop-filter: var(--blur);
-    -webkit-backdrop-filter: var(--blur);
     border: 1px solid var(--border);
-    border-radius: 20px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    border-radius: 16px;
+    transition: all 0.3s ease;
   }
-  .card:hover { border-color: rgba(217,160,78,0.3); transform: translateY(-2px); box-shadow: 0 12px 30px rgba(0,0,0,0.15); }
+  .card:hover { border-color: rgba(217,160,78,0.2); box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
 
+  /* Stat card glow effect */
   .stat-card { position:relative; overflow:hidden; }
   .stat-card::before {
     content:''; position:absolute; top:-50%; left:-50%; width:200%; height:200%;
@@ -74,110 +68,155 @@
     pointer-events:none;
   }
 
-  /* Buttons Optimization */
+  /* Buttons */
   .btn-primary {
     background: linear-gradient(135deg, var(--accent), var(--accent3));
     color: #fff; font-weight:600; border:none; cursor:pointer;
     transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
     font-family: 'Syne', sans-serif;
     letter-spacing: 0.02em;
-    box-shadow: 0 4px 12px rgba(217,160,78,0.2);
   }
-  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(217,160,78,0.35); }
-  .btn-primary:active { transform: translateY(0) scale(0.98); }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(217,160,78,0.4); }
+  .btn-primary:active { transform: translateY(0) scale(0.97); }
 
   .btn-secondary {
     background: var(--card2); color: var(--text2); border: 1px solid var(--border);
-    cursor:pointer; transition: all 0.2s ease; border-radius: 12px;
+    cursor:pointer; transition: all 0.2s ease;
+    font-family: 'DM Sans', sans-serif;
   }
   .btn-secondary:hover { background: var(--bg3); color: var(--text); border-color: var(--accent); }
-  .btn-secondary.active { background: var(--accent); color:#fff; border-color: var(--accent); box-shadow: 0 4px 10px rgba(217,160,78,0.2); }
+  .btn-secondary.active { background: var(--accent); color:#fff; border-color: var(--accent); }
 
+  /* Input fields */
   .field {
     background: var(--bg2); border: 1px solid var(--border); color: var(--text);
-    border-radius: 12px; transition: all 0.2s ease; outline:none;
+    border-radius: 10px; transition: all 0.2s ease; outline:none;
+    font-family: 'DM Sans', sans-serif;
   }
   .field:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(217,160,78,0.15); }
+  .field option { background: var(--bg2); }
 
+  /* Transaction list item */
   .tx-item {
-    background: var(--card2); border-radius: 14px; border: 1px solid var(--border);
-    transition: all 0.2s ease; animation: slideIn 0.3s ease-out;
+    background: var(--card2); border-radius: 12px; border: 1px solid var(--border);
+    transition: all 0.25s ease; animation: slideIn 0.35s cubic-bezier(0.34,1.56,0.64,1);
   }
-  .tx-item:hover { transform: translateX(6px); border-color: rgba(217,160,78,0.3); }
+  .tx-item:hover { transform: translateX(4px); border-color: rgba(217,160,78,0.25); }
 
-  @keyframes slideIn { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
+  @keyframes slideIn {
+    from { opacity:0; transform: translateX(-20px); }
+    to { opacity:1; transform: translateX(0); }
+  }
+  @keyframes fadeUp {
+    from { opacity:0; transform: translateY(16px); }
+    to { opacity:1; transform: translateY(0); }
+  }
+  @keyframes countUp {
+    from { transform: scale(0.85); opacity:0.5; }
+    to { transform: scale(1); opacity:1; }
+  }
+  .count-anim { animation: countUp 0.4s cubic-bezier(0.34,1.56,0.64,1); }
 
+  /* Progress bar */
   .progress-fill {
     height:100%; border-radius:999px;
     background: linear-gradient(90deg, var(--accent3), var(--accent2));
-    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: width 0.8s cubic-bezier(0.34,1.56,0.64,1);
     position:relative; overflow:hidden;
   }
-
-  .tab-btn {
-    cursor:pointer; transition: all 0.2s ease; border-radius:10px;
-    font-family: 'Syne', sans-serif; font-weight:600; font-size:0.8rem;
-    letter-spacing:0.04em; text-transform:uppercase; padding:8px 16px;
+  .progress-fill::after {
+    content:''; position:absolute; top:0; left:-100%; width:100%; height:100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    animation: shimmer 2s infinite;
   }
-  .tab-btn.active { background: var(--accent); color:#fff; box-shadow: 0 4px 10px rgba(217,160,78,0.2); }
+  @keyframes shimmer { to { left:200%; } }
+
+  /* Goal card */
+  .goal-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    transition: all 0.3s ease; animation: fadeUp 0.4s ease;
+  }
+  .goal-card:hover { border-color: rgba(217,160,78,0.3); transform: translateY(-2px); }
+
+  /* Tab navigation */
+  .tab-btn {
+    cursor:pointer; transition: all 0.2s ease; border-radius:8px;
+    font-family: 'Syne', sans-serif; font-weight:600; font-size:0.8rem;
+    letter-spacing:0.04em; text-transform:uppercase; padding:6px 14px;
+  }
+  .tab-btn.active { background: var(--accent); color:#fff; }
   .tab-btn:not(.active) { color: var(--text2); }
   .tab-btn:not(.active):hover { color: var(--text); background: var(--card2); }
 
-  .section-label { font-family: 'Syne', sans-serif; font-size:0.75rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color: var(--text3); }
-  .del-btn { opacity: 0.4; transition: all 0.2s; }
+  /* Section header */
+  .section-label {
+    font-family: 'Syne', sans-serif; font-size:0.7rem; font-weight:700;
+    letter-spacing:0.12em; text-transform:uppercase; color: var(--text3);
+  }
+
+  /* Delete button */
+  .del-btn { opacity:0; transition: opacity 0.2s, transform 0.2s; }
   .tx-item:hover .del-btn { opacity:1; }
+  .del-btn:hover { transform: scale(1.15); }
+
+  /* Theme toggle */
+  .theme-toggle { transition: transform 0.5s ease; }
+  .theme-toggle:hover { transform: rotate(180deg); }
+
+  /* Dot indicator */
+  .dot { width:8px; height:8px; border-radius:50%; display:inline-block; }
 </style>
 </head>
-<body class="min-h-screen pb-12">
+<body class="min-h-screen">
 
 <!-- Top Navigation -->
-<nav style="background:var(--card); backdrop-filter:var(--blur); -webkit-backdrop-filter:var(--blur); border-bottom:1px solid var(--border);" class="sticky top-0 z-50 px-6 py-4">
+<nav style="background:var(--bg2); border-bottom:1px solid var(--border);" class="sticky top-0 z-50 px-6 py-4">
   <div class="max-w-7xl mx-auto flex items-center justify-between">
     <div class="flex items-center gap-3">
-      <div class="w-9 h-9 rounded-xl flex items-center justify-center shadow-md" style="background:var(--accent);">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:var(--accent);">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
       </div>
-      <span class="font-display font-800 text-xl tracking-tight" style="color:var(--text);">FinTrack</span>
-   
+      <span class="font-display font-800 text-lg" style="color:var(--text);">FinTrack</span>
+      <span class="text-xs px-2 py-0.5 rounded-full" style="background:var(--glow); color:var(--accent); font-family:'Syne',sans-serif; font-weight:600;">GEO</span>
     </div>
     <div class="flex items-center gap-3">
-      <button onclick="toggleTheme()" class="w-9 h-9 rounded-xl flex items-center justify-center transition-transform active:scale-95" style="background:var(--card2); border:1px solid var(--border);">
+      <button onclick="toggleTheme()" class="theme-toggle w-9 h-9 rounded-lg flex items-center justify-center" style="background:var(--card2); border:1px solid var(--border);">
         <span id="theme-icon" class="text-base">🌙</span>
       </button>
-      <button onclick="clearAll()" class="btn-secondary text-xs px-3 py-2 rounded-xl font-medium" style="color:var(--red); border-color: rgba(248,113,113,0.2);">
-        🗑 გასუფთავება
+      <button onclick="clearAll()" class="btn-secondary text-xs px-3 py-2 rounded-lg" style="color:var(--red);">
+        🗑 ყველა
       </button>
     </div>
   </div>
 </nav>
 
 <!-- Main Layout -->
-<div class="max-w-7xl mx-auto px-4 py-8">
+<div class="max-w-7xl mx-auto px-4 py-6">
 
   <!-- Stat Cards Row -->
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
     <!-- Balance -->
-    <div class="card stat-card p-6" style="border-color:rgba(217,160,78,0.3);">
+    <div class="card stat-card p-5" style="border-color:rgba(217,160,78,0.25);">
       <div class="section-label mb-2">მთლიანი ბალანსი</div>
       <div id="stat-balance" class="font-display text-3xl font-800 mb-1" style="color:var(--accent);">₾0.00</div>
-      <div class="text-xs" style="color:var(--text3);">აქტიური ბალანსი</div>
+      <div class="text-xs" style="color:var(--text3);">განახლებულია ახლახანს</div>
     </div>
     <!-- Income -->
-    <div class="card stat-card p-6">
+    <div class="card stat-card p-5">
       <div class="section-label mb-2">შემოსავალი</div>
       <div id="stat-income" class="font-display text-3xl font-800 mb-1" style="color:var(--green);">₾0.00</div>
-      <div class="text-xs" style="color:var(--text3);">ჯამური შემოსავალი</div>
+      <div class="text-xs" style="color:var(--text3);">სულ შემოსული</div>
     </div>
     <!-- Expense -->
-    <div class="card stat-card p-6">
+    <div class="card stat-card p-5">
       <div class="section-label mb-2">ხარჯები</div>
       <div id="stat-expense" class="font-display text-3xl font-800 mb-1" style="color:var(--red);">₾0.00</div>
-      <div class="text-xs" style="color:var(--text3);">ჯამური ხარჯი</div>
+      <div class="text-xs" style="color:var(--text3);">სულ გამოსული</div>
     </div>
   </div>
 
   <!-- Tab Navigation -->
-  <div class="flex gap-1 mb-8 p-1.5 rounded-2xl w-fit" style="background:var(--card2); border:1px solid var(--border);">
+  <div class="flex gap-2 mb-6 p-1 rounded-xl w-fit" style="background:var(--card);">
     <button class="tab-btn active" onclick="switchTab('transactions')" id="tab-transactions">ტრანზაქციები</button>
     <button class="tab-btn" onclick="switchTab('analytics')" id="tab-analytics">ანალიტიკა</button>
     <button class="tab-btn" onclick="switchTab('goals')" id="tab-goals">მიზნები</button>
@@ -185,35 +224,39 @@
 
   <!-- ==================== TAB: TRANSACTIONS ==================== -->
   <div id="page-transactions">
-    <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-5">
 
       <!-- Add Transaction Form -->
-      <div class="lg:col-span-2 space-y-5">
-        <div class="card p-6">
+      <div class="lg:col-span-2">
+        <div class="card p-5">
           <div class="section-label mb-4">ახალი ჩანაწერი</div>
 
+          <!-- Type selector -->
           <div class="grid grid-cols-2 gap-2 mb-4">
-            <button onclick="setType('income')" id="type-income" class="btn-secondary py-3 text-xs font-bold active">
+            <button onclick="setType('income')" id="type-income" class="btn-secondary py-2.5 rounded-xl text-sm font-600 active" style="font-family:'Syne',sans-serif;">
               ↑ შემოსავალი
             </button>
-            <button onclick="setType('expense')" id="type-expense" class="btn-secondary py-3 text-xs font-bold">
+            <button onclick="setType('expense')" id="type-expense" class="btn-secondary py-2.5 rounded-xl text-sm font-600" style="font-family:'Syne',sans-serif;">
               ↓ ხარჯი
             </button>
           </div>
 
+          <!-- Description -->
           <div class="mb-3">
             <label class="section-label block mb-1.5">აღწერა</label>
-            <input id="f-desc" type="text" class="field w-full px-4 py-3 text-sm" placeholder="მაგ: სუპერმარკეტი...">
+            <input id="f-desc" type="text" class="field w-full px-4 py-2.5 text-sm" placeholder="მაგ: სუპერმარკეტი...">
           </div>
 
+          <!-- Amount -->
           <div class="mb-3">
             <label class="section-label block mb-1.5">თანხა (₾)</label>
-            <input id="f-amount" type="number" class="field w-full px-4 py-3 text-sm" placeholder="0.00" min="0" step="0.01">
+            <input id="f-amount" type="number" class="field w-full px-4 py-2.5 text-sm" placeholder="0.00" min="0" step="0.01">
           </div>
 
+          <!-- Category -->
           <div class="mb-3">
             <label class="section-label block mb-1.5">კატეგორია</label>
-            <select id="f-category" class="field w-full px-4 py-3 text-sm">
+            <select id="f-category" class="field w-full px-4 py-2.5 text-sm">
               <option value="food">🍔 საკვები</option>
               <option value="transport">🚗 ტრანსპორტი</option>
               <option value="entertainment">🎭 გართობა</option>
@@ -228,25 +271,26 @@
             </select>
           </div>
 
-          <div class="mb-5">
+          <!-- Date -->
+          <div class="mb-4">
             <label class="section-label block mb-1.5">თარიღი</label>
-            <input id="f-date" type="date" class="field w-full px-4 py-3 text-sm">
+            <input id="f-date" type="date" class="field w-full px-4 py-2.5 text-sm">
           </div>
 
-          <button onclick="addTransaction()" class="btn-primary w-full py-3.5 rounded-xl text-sm">
+          <button onclick="addTransaction()" class="btn-primary w-full py-3 rounded-xl text-sm">
             + დამატება
           </button>
         </div>
 
         <!-- Filter Bar -->
-        <div class="card p-5">
-          <div class="section-label mb-3">ფილტრაცია</div>
-          <div class="flex gap-2 mb-3">
-            <button onclick="setFilter('all')" id="filter-all" class="btn-secondary text-xs px-4 py-2 active">ყველა</button>
-            <button onclick="setFilter('income')" id="filter-income" class="btn-secondary text-xs px-4 py-2">შემოსავალი</button>
-            <button onclick="setFilter('expense')" id="filter-expense" class="btn-secondary text-xs px-4 py-2">ხარჯი</button>
+        <div class="card p-4 mt-4">
+          <div class="section-label mb-3">ფილტრი</div>
+          <div class="flex flex-wrap gap-2 mb-3">
+            <button onclick="setFilter('all')" id="filter-all" class="btn-secondary text-xs px-3 py-1.5 rounded-lg active">ყველა</button>
+            <button onclick="setFilter('income')" id="filter-income" class="btn-secondary text-xs px-3 py-1.5 rounded-lg">შემოსავალი</button>
+            <button onclick="setFilter('expense')" id="filter-expense" class="btn-secondary text-xs px-3 py-1.5 rounded-lg">ხარჯი</button>
           </div>
-          <select id="filter-category" onchange="renderTransactions()" class="field w-full px-3 py-2.5 text-xs mt-1">
+          <select id="filter-category" onchange="renderTransactions()" class="field w-full px-3 py-2 text-xs">
             <option value="all">ყველა კატეგორია</option>
             <option value="food">🍔 საკვები</option>
             <option value="transport">🚗 ტრანსპორტი</option>
@@ -265,13 +309,17 @@
 
       <!-- Transaction List -->
       <div class="lg:col-span-3">
-        <div class="card p-6 h-full flex flex-col">
-          <div class="flex items-center justify-between mb-5">
-            <div class="section-label">ისტორია</div>
-            <div id="tx-count" class="text-xs px-3 py-1 rounded-full font-medium" style="background:var(--card2); color:var(--text2);">0 ჩანაწერი</div>
+        <div class="card p-5 h-full">
+          <div class="flex items-center justify-between mb-4">
+            <div class="section-label">ჩანაწერები</div>
+            <div id="tx-count" class="text-xs px-2 py-1 rounded-full" style="background:var(--card2); color:var(--text2);">0 ჩანაწერი</div>
           </div>
-          <div id="tx-list" class="space-y-2 overflow-y-auto pr-1 flex-1 max-h-[560px]">
-            <!-- Dynamic Content -->
+          <div id="tx-list" class="space-y-2 overflow-y-auto" style="max-height:520px;">
+            <div class="text-center py-16" style="color:var(--text3);">
+              <div class="text-4xl mb-3">💳</div>
+              <div class="font-display text-sm">ჩანაწერები ჯერ არ გაქვს</div>
+              <div class="text-xs mt-1">დაამატე პირველი ტრანზაქცია</div>
+            </div>
           </div>
         </div>
       </div>
@@ -280,23 +328,26 @@
 
   <!-- ==================== TAB: ANALYTICS ==================== -->
   <div id="page-analytics" style="display:none;">
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <div class="card p-6">
-        <div class="section-label mb-4">ხარჯების სტრუქტურა</div>
-        <div class="relative h-[280px]">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      <!-- Donut chart -->
+      <div class="card p-5">
+        <div class="section-label mb-4">ხარჯების განაწილება</div>
+        <div class="relative" style="height:280px;">
           <canvas id="donut-chart"></canvas>
         </div>
-        <div id="donut-legend" class="mt-4 grid grid-cols-2 gap-2 max-h-[100px] overflow-y-auto"></div>
+        <div id="donut-legend" class="mt-4 grid grid-cols-2 gap-2"></div>
       </div>
-      <div class="card p-6">
-        <div class="section-label mb-4">ბალანსის პროპორცია</div>
-        <div class="relative h-[280px]">
+      <!-- Bar chart -->
+      <div class="card p-5">
+        <div class="section-label mb-4">შემოსავალი vs ხარჯი</div>
+        <div class="relative" style="height:280px;">
           <canvas id="bar-chart"></canvas>
         </div>
       </div>
-      <div class="card p-6 lg:col-span-2">
-        <div class="section-label mb-4">დინამიკის გრაფიკი</div>
-        <div class="relative h-[250px]">
+      <!-- Line chart -->
+      <div class="card p-5 lg:col-span-2">
+        <div class="section-label mb-4">ბალანსის დინამიკა</div>
+        <div class="relative" style="height:220px;">
           <canvas id="line-chart"></canvas>
         </div>
       </div>
@@ -305,41 +356,50 @@
 
   <!-- ==================== TAB: GOALS ==================== -->
   <div id="page-goals" style="display:none;">
-    <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
-      <div class="lg:col-span-2 space-y-5">
-        <div class="card p-6">
-          <div class="section-label mb-4">ახალი ფინანსური მიზანი</div>
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-5">
+
+      <!-- Add goal form -->
+      <div class="lg:col-span-2">
+        <div class="card p-5">
+          <div class="section-label mb-4">ახალი მიზანი</div>
           <div class="mb-3">
-            <label class="section-label block mb-1.5">მიზანი</label>
-            <input id="g-name" type="text" class="field w-full px-4 py-3 text-sm" placeholder="მაგ: ახალი ნოუთბუქი...">
-          </div>
-          <div class="mb-3">
-            <label class="section-label block mb-1.5">თანხა (₾)</label>
-            <input id="g-amount" type="number" class="field w-full px-4 py-3 text-sm" placeholder="0.00" min="1">
+            <label class="section-label block mb-1.5">მიზნის სახელი</label>
+            <input id="g-name" type="text" class="field w-full px-4 py-2.5 text-sm" placeholder="მაგ: ახალი ტელეფონი...">
           </div>
           <div class="mb-3">
-            <label class="section-label block mb-1.5">ვიზუალიზაცია (Emoji)</label>
-            <input id="g-emoji" type="text" class="field w-full px-4 py-3 text-sm" placeholder="💻" maxlength="2">
+            <label class="section-label block mb-1.5">სამიზნე თანხა (₾)</label>
+            <input id="g-amount" type="number" class="field w-full px-4 py-2.5 text-sm" placeholder="0.00" min="1">
           </div>
-          <div class="mb-5">
-            <label class="section-label block mb-1.5">სამიზნე თარიღი</label>
-            <input id="g-deadline" type="date" class="field w-full px-4 py-3 text-sm">
+          <div class="mb-3">
+            <label class="section-label block mb-1.5">ემოჯი / ხატულა</label>
+            <input id="g-emoji" type="text" class="field w-full px-4 py-2.5 text-sm" placeholder="📱" maxlength="2">
           </div>
-          <button onclick="addGoal()" class="btn-primary w-full py-3.5 rounded-xl text-sm">
-            🎯 მიზნის დასახვა
+          <div class="mb-4">
+            <label class="section-label block mb-1.5">ვადა (სურვილისამებრ)</label>
+            <input id="g-deadline" type="date" class="field w-full px-4 py-2.5 text-sm">
+          </div>
+          <button onclick="addGoal()" class="btn-primary w-full py-3 rounded-xl text-sm">
+            🎯 მიზნის დამატება
           </button>
         </div>
 
-        <div class="card p-5">
-          <div class="section-label mb-2">ხელმისაწვდომი სახსრები</div>
+        <!-- Balance info for goals -->
+        <div class="card p-4 mt-4" style="border-color:rgba(217,160,78,0.2);">
+          <div class="section-label mb-2">მიმდინარე ბალანსი</div>
           <div id="goal-balance-display" class="font-display text-2xl font-800" style="color:var(--accent);">₾0.00</div>
+          <div class="text-xs mt-1" style="color:var(--text3);">ბალანსი გამოიყენება Progress Bar-ის გამოსათვლელად</div>
         </div>
       </div>
 
+      <!-- Goals list -->
       <div class="lg:col-span-3">
-        <div class="section-label mb-4">მიმდინარე მიზნები</div>
-        <div id="goals-list" class="space-y-4">
-          <!-- Dynamic Content -->
+        <div class="section-label mb-3">ჩემი მიზნები</div>
+        <div id="goals-list" class="space-y-3">
+          <div class="text-center py-16" style="color:var(--text3);">
+            <div class="text-4xl mb-3">🎯</div>
+            <div class="font-display text-sm">მიზნები ჯერ არ გაქვს</div>
+            <div class="text-xs mt-1">დაისახე პირველი ფინანსური მიზანი</div>
+          </div>
         </div>
       </div>
     </div>
@@ -347,29 +407,22 @@
 
 </div>
 
-<!-- Toast notification System -->
-<div id="toast" class="fixed bottom-6 right-6 z-50 px-5 py-3.5 rounded-xl text-sm font-600 opacity-0 pointer-events-none transition-all duration-300 shadow-xl"
+<!-- Toast -->
+<div id="toast" class="fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl text-sm font-600 opacity-0 pointer-events-none transition-all duration-300"
      style="background:var(--accent); color:#fff; font-family:'Syne',sans-serif; transform:translateY(20px);">
 </div>
 
 <script>
-// PWA Service Worker Registration
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js')
-      .then(reg => console.log('Service Worker რეგისტრირებულია წარმატებით!'))
-      .catch(err => console.log('Service Worker რეგისტრაციის შეცდომა:', err));
-  });
-}
-
-// ─── State და მენეჯმენტი ───────────────────────────────────────────
+// ─── State ───────────────────────────────────────────────────────
 let transactions = JSON.parse(localStorage.getItem('ft_transactions') || '[]');
 let goals        = JSON.parse(localStorage.getItem('ft_goals')        || '[]');
 let currentType  = 'income';
 let currentFilter = 'all';
 let isLight = false;
+
 let donutChart = null, barChart = null, lineChart = null;
 
+// ─── Category meta ───────────────────────────────────────────────
 const CAT = {
   food:          { label:'საკვები',      icon:'🍔', color:'#f97316' },
   transport:     { label:'ტრანსპორტი',  icon:'🚗', color:'#3b82f6' },
@@ -384,31 +437,41 @@ const CAT = {
   other:         { label:'სხვა',        icon:'📦', color:'#94a3b8' },
 };
 
+// ─── Init ─────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('f-date').value = today();
   updateStats();
   renderTransactions();
   renderGoals();
 });
 
+function today() {
+  return new Date().toISOString().split('T')[0];
+}
+
+// ─── Theme ────────────────────────────────────────────────────────
 function toggleTheme() {
   isLight = !isLight;
   document.body.classList.toggle('light-mode', isLight);
   document.getElementById('theme-icon').textContent = isLight ? '☀️' : '🌙';
-  if (document.getElementById('page-analytics').style.display !== 'none') updateCharts();
+  if (donutChart) updateCharts();
 }
 
+// ─── Toast ────────────────────────────────────────────────────────
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.style.opacity = '1';
   t.style.transform = 'translateY(0)';
+  t.style.pointerEvents = 'auto';
   setTimeout(() => {
     t.style.opacity = '0';
     t.style.transform = 'translateY(20px)';
-  }, 2500);
+    t.style.pointerEvents = 'none';
+  }, 2800);
 }
 
+// ─── Tab switching ────────────────────────────────────────────────
 function switchTab(tab) {
   ['transactions','analytics','goals'].forEach(t => {
     document.getElementById('page-' + t).style.display = t === tab ? '' : 'none';
@@ -417,12 +480,14 @@ function switchTab(tab) {
   if (tab === 'analytics') updateCharts();
 }
 
+// ─── Type selector ────────────────────────────────────────────────
 function setType(t) {
   currentType = t;
   document.getElementById('type-income').classList.toggle('active', t === 'income');
   document.getElementById('type-expense').classList.toggle('active', t === 'expense');
 }
 
+// ─── Filter ───────────────────────────────────────────────────────
 function setFilter(f) {
   currentFilter = f;
   ['all','income','expense'].forEach(x => {
@@ -431,169 +496,336 @@ function setFilter(f) {
   renderTransactions();
 }
 
+// ─── Add Transaction ──────────────────────────────────────────────
 function addTransaction() {
-  const desc = document.getElementById('f-desc').value.trim();
-  const amount = parseFloat(document.getElementById('f-amount').value);
-  const cat = document.getElementById('f-category').value;
-  const date = document.getElementById('f-date').value;
+  const desc    = document.getElementById('f-desc').value.trim();
+  const amount  = parseFloat(document.getElementById('f-amount').value);
+  const cat     = document.getElementById('f-category').value;
+  const date    = document.getElementById('f-date').value;
 
-  if (!desc) return showToast('⚠️ შეიყვანე აღწერა');
+  if (!desc)     return showToast('⚠️ შეიყვანე აღწერა');
   if (!amount || amount <= 0) return showToast('⚠️ შეიყვანე სწორი თანხა');
 
-  transactions.unshift({ id: Date.now(), type: currentType, desc, amount, cat, date });
-  save(); updateStats(); renderTransactions();
-  document.getElementById('f-desc').value = '';
+  const tx = {
+    id: Date.now(),
+    type: currentType,
+    desc, amount, cat,
+    date: date || today()
+  };
+  transactions.unshift(tx);
+  save();
+  updateStats();
+  renderTransactions();
+
+  document.getElementById('f-desc').value   = '';
   document.getElementById('f-amount').value = '';
-  showToast('✅ ჩანაწერი დაემატა');
+
+  showToast(currentType === 'income' ? '✅ შემოსავალი დაემატა' : '✅ ხარჯი დაემატა');
 }
 
+// ─── Delete Transaction ───────────────────────────────────────────
 function deleteTransaction(id) {
   transactions = transactions.filter(t => t.id !== id);
-  save(); updateStats(); renderTransactions();
+  save();
+  updateStats();
+  renderTransactions();
   showToast('🗑 ჩანაწერი წაიშალა');
 }
 
+// ─── Clear All ────────────────────────────────────────────────────
 function clearAll() {
   if (!confirm('ნამდვილად გსურს ყველა მონაცემის წაშლა?')) return;
-  transactions = []; goals = []; save(); updateStats(); renderTransactions(); renderGoals();
-  showToast('🗑 ბაზა გასუფთავდა');
+  transactions = [];
+  goals = [];
+  save();
+  updateStats();
+  renderTransactions();
+  renderGoals();
+  showToast('🗑 ყველა მონაცემი წაიშალა');
 }
 
+// ─── Update Stats ─────────────────────────────────────────────────
 function updateStats() {
-  const income = transactions.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+  const income  = transactions.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
   const expense = transactions.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
   const balance = income - expense;
 
-  document.getElementById('stat-balance').textContent = '₾' + balance.toFixed(2);
-  document.getElementById('stat-income').textContent = '₾' + income.toFixed(2);
-  document.getElementById('stat-expense').textContent = '₾' + expense.toFixed(2);
-  document.getElementById('goal-balance-display').textContent = '₾' + balance.toFixed(2);
+  animateStat('stat-balance', balance, '₾');
+  animateStat('stat-income',  income,  '₾');
+  animateStat('stat-expense', expense, '₾');
+
+  const bd = document.getElementById('goal-balance-display');
+  if (bd) bd.textContent = '₾' + balance.toFixed(2);
+
   renderGoals();
 }
 
+function animateStat(id, val, prefix='') {
+  const el = document.getElementById(id);
+  el.textContent = prefix + val.toFixed(2);
+  el.classList.remove('count-anim');
+  void el.offsetWidth;
+  el.classList.add('count-anim');
+}
+
+// ─── Render Transactions ──────────────────────────────────────────
 function renderTransactions() {
   const catFilter = document.getElementById('filter-category').value;
   let list = [...transactions];
   if (currentFilter !== 'all') list = list.filter(t => t.type === currentFilter);
-  if (catFilter !== 'all') list = list.filter(t => t.cat === catFilter);
+  if (catFilter !== 'all')     list = list.filter(t => t.cat  === catFilter);
 
   const container = document.getElementById('tx-list');
   document.getElementById('tx-count').textContent = list.length + ' ჩანაწერი';
 
   if (!list.length) {
-    container.innerHTML = `<div class="text-center py-12 text-sm" style="color:var(--text3);">ჩანაწერები არ მოიძებნა</div>`;
+    container.innerHTML = `<div class="text-center py-12" style="color:var(--text3);">
+      <div class="text-3xl mb-2">🔍</div>
+      <div class="font-display text-sm">ჩანაწერი ვერ მოიძებნა</div>
+    </div>`;
     return;
   }
 
   container.innerHTML = list.map(tx => {
     const meta = CAT[tx.cat] || CAT.other;
+    const sign = tx.type === 'income' ? '+' : '-';
+    const color = tx.type === 'income' ? 'var(--green)' : 'var(--red)';
     return `
-    <div class="tx-item flex items-center gap-3 p-3.5">
-      <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0" style="background:${meta.color}15;">${meta.icon}</div>
+    <div class="tx-item flex items-center gap-3 p-3">
+      <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
+           style="background:${meta.color}22;">${meta.icon}</div>
       <div class="flex-1 min-w-0">
-        <div class="text-sm font-500 truncate">${tx.desc}</div>
-        <div class="text-xs mt-0.5 flex gap-2" style="color:var(--text3);"><span>${meta.label}</span><span>·</span><span>${tx.date}</span></div>
+        <div class="text-sm font-500 truncate" style="color:var(--text);">${tx.desc}</div>
+        <div class="flex items-center gap-2 mt-0.5">
+          <span class="text-xs" style="color:var(--text3);">${meta.label}</span>
+          <span style="color:var(--text3); font-size:10px;">·</span>
+          <span class="text-xs" style="color:var(--text3);">${tx.date}</span>
+        </div>
       </div>
-      <div class="text-right font-display font-700 text-sm ${tx.type === 'income' ? 'text-green-400' : 'text-red-400'}">
-        ${tx.type === 'income' ? '+' : '-'}₾${tx.amount.toFixed(2)}
+      <div class="text-right">
+        <div class="font-display font-700 text-sm" style="color:${color};">${sign}₾${tx.amount.toFixed(2)}</div>
       </div>
-      <button onclick="deleteTransaction(${tx.id})" class="del-btn w-7 h-7 rounded-lg flex items-center justify-center text-xs ml-1" style="background:rgba(248,113,113,0.1); color:var(--red);">✕</button>
+      <button onclick="deleteTransaction(${tx.id})" class="del-btn w-7 h-7 rounded-lg flex items-center justify-center text-xs flex-shrink-0"
+              style="background:rgba(248,113,113,0.12); color:var(--red);">✕</button>
     </div>`;
   }).join('');
 }
 
+// ─── Goals ────────────────────────────────────────────────────────
 function addGoal() {
-  const name = document.getElementById('g-name').value.trim();
-  const amount = parseFloat(document.getElementById('g-amount').value);
-  const emoji = document.getElementById('g-emoji').value.trim() || '🎯';
+  const name     = document.getElementById('g-name').value.trim();
+  const amount   = parseFloat(document.getElementById('g-amount').value);
+  const emoji    = document.getElementById('g-emoji').value.trim() || '🎯';
   const deadline = document.getElementById('g-deadline').value;
 
-  if (!name || !amount) return showToast('⚠️ შეავსე ველები სწორად');
+  if (!name)   return showToast('⚠️ შეიყვანე მიზნის სახელი');
+  if (!amount || amount <= 0) return showToast('⚠️ შეიყვანე სწორი თანხა');
+
   goals.push({ id: Date.now(), name, amount, emoji, deadline });
-  save(); renderGoals();
-  document.getElementById('g-name').value = '';
-  document.getElementById('g-amount').value = '';
-  showToast('🎯 მიზანი დასახულია!');
+  save();
+  renderGoals();
+
+  document.getElementById('g-name').value     = '';
+  document.getElementById('g-amount').value   = '';
+  document.getElementById('g-emoji').value    = '';
+  document.getElementById('g-deadline').value = '';
+
+  showToast('🎯 მიზანი დაემატა!');
 }
 
 function deleteGoal(id) {
   goals = goals.filter(g => g.id !== id);
-  save(); renderGoals();
+  save();
+  renderGoals();
+  showToast('🗑 მიზანი წაიშალა');
 }
 
 function renderGoals() {
-  const income = transactions.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
-  const expense = transactions.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
-  const balance = income - expense;
+  const balance = transactions.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0)
+                - transactions.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
 
   const container = document.getElementById('goals-list');
   if (!goals.length) {
-    container.innerHTML = `<div class="text-center py-12 text-sm" style="color:var(--text3);">მიზნები ჯერ არ გაქვს</div>`;
+    container.innerHTML = `<div class="text-center py-16" style="color:var(--text3);">
+      <div class="text-4xl mb-3">🎯</div>
+      <div class="font-display text-sm">მიზნები ჯერ არ გაქვს</div>
+      <div class="text-xs mt-1">დაისახე პირველი ფინანსური მიზანი</div>
+    </div>`;
     return;
   }
 
   container.innerHTML = goals.map(g => {
     const pct = Math.min(100, balance <= 0 ? 0 : (balance / g.amount) * 100);
+    const remaining = Math.max(0, g.amount - balance);
+    const statusColor = pct >= 100 ? 'var(--green)' : pct >= 50 ? 'var(--accent)' : 'var(--red)';
+    const daysLeft = g.deadline ? Math.ceil((new Date(g.deadline) - new Date()) / 86400000) : null;
+
     return `
-    <div class="card p-5">
-      <div class="flex justify-between items-start mb-3">
-        <div class="flex gap-3">
+    <div class="goal-card p-5">
+      <div class="flex items-start justify-between mb-3">
+        <div class="flex items-center gap-3">
           <div class="text-2xl">${g.emoji}</div>
           <div>
-            <div class="text-sm font-bold">${g.name}</div>
-            <div class="text-xs" style="color:var(--text3);">სამიზნე: ₾${g.amount.toFixed(2)}</div>
+            <div class="font-display font-700 text-sm" style="color:var(--text);">${g.name}</div>
+            <div class="text-xs mt-0.5" style="color:var(--text3);">
+              სამიზნე: ₾${g.amount.toFixed(2)}
+              ${daysLeft !== null ? `· ${daysLeft > 0 ? daysLeft + ' დღე დარჩა' : 'ვადა გავიდა'}` : ''}
+            </div>
           </div>
         </div>
         <div class="flex items-center gap-2">
-          <span class="text-xs font-bold" style="color:var(--accent);">${pct.toFixed(0)}%</span>
-          <button onclick="deleteGoal(${g.id})" style="color:var(--red);" class="text-xs">✕</button>
+          <span class="font-display font-800 text-sm" style="color:${statusColor};">${pct.toFixed(0)}%</span>
+          <button onclick="deleteGoal(${g.id})" class="w-7 h-7 rounded-lg flex items-center justify-center text-xs transition-all hover:scale-110"
+                  style="background:rgba(248,113,113,0.12); color:var(--red);">✕</button>
         </div>
       </div>
-      <div class="w-full rounded-full bg-slate-800" style="height:6px;">
+
+      <div class="w-full rounded-full" style="height:8px; background:var(--bg2);">
         <div class="progress-fill" style="width:${pct}%;"></div>
+      </div>
+
+      <div class="flex justify-between mt-2">
+        <div class="text-xs" style="color:var(--text3);">
+          ${pct >= 100 ? '🎉 მიზანი მიღწეულია!' : `კიდევ ₾${remaining.toFixed(2)} საჭიროა`}
+        </div>
+        <div class="text-xs font-500" style="color:${statusColor};">₾${Math.min(balance > 0 ? balance : 0, g.amount).toFixed(2)} / ₾${g.amount.toFixed(2)}</div>
       </div>
     </div>`;
   }).join('');
 }
 
+// ─── Charts ───────────────────────────────────────────────────────
 function updateCharts() {
-  if (typeof Chart === 'undefined') return; // უსაფრთხოება ოფლაინ რეჟიმისთვის
-  const textColor = isLight ? '#65594f' : '#9ba3be';
-  
+  const textColor    = isLight ? '#6b5e52' : '#9ba3be';
+  const gridColor    = isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)';
+  const tooltipBg    = isLight ? '#fff' : '#1e2538';
+  const tooltipColor = isLight ? '#2a2320' : '#e8dcc8';
+
+  // Donut: expenses by category
   const expByCat = {};
-  transactions.filter(t => t.type === 'expense').forEach(t => expByCat[t.cat] = (expByCat[t.cat] || 0) + t.amount);
-  
-  // Donut Chart
+  transactions.filter(t => t.type === 'expense').forEach(t => {
+    expByCat[t.cat] = (expByCat[t.cat] || 0) + t.amount;
+  });
+  const cats   = Object.keys(expByCat);
+  const values = cats.map(c => expByCat[c]);
+  const colors = cats.map(c => (CAT[c] || CAT.other).color);
+
   if (donutChart) donutChart.destroy();
-  const dcCtx = document.getElementById('donut-chart');
-  if (dcCtx) {
-    donutChart = new Chart(dcCtx.getContext('2d'), {
+  const dc = document.getElementById('donut-chart').getContext('2d');
+  if (cats.length) {
+    donutChart = new Chart(dc, {
       type: 'doughnut',
-      data: {
-        labels: Object.keys(expByCat).map(c => (CAT[c]||CAT.other).label),
-        datasets: [{ data: Object.values(expByCat), backgroundColor: Object.keys(expByCat).map(c => (CAT[c]||CAT.other).color), borderWidth: 0 }]
-      },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+      data: { labels: cats.map(c => (CAT[c]||CAT.other).label), datasets:[{ data:values, backgroundColor:colors, borderWidth:2, borderColor: isLight ? '#fff' : '#1e2538', hoverOffset:6 }] },
+      options: {
+        responsive:true, maintainAspectRatio:false, cutout:'68%',
+        plugins: {
+          legend: { display:false },
+          tooltip: { backgroundColor:tooltipBg, titleColor:tooltipColor, bodyColor:tooltipColor, padding:10,
+            callbacks:{ label: ctx => ` ₾${ctx.parsed.toFixed(2)}` } }
+        }
+      }
     });
+  } else {
+    dc.canvas.parentElement.innerHTML = `<div class="flex items-center justify-center h-full" style="color:var(--text3); font-size:0.8rem; font-family:'Syne',sans-serif;">ხარჯები არ გაქვს</div>`;
   }
 
-  // Bar Chart
-  const income = transactions.filter(t => t.type === 'income').reduce((s,t)=>s+t.amount,0);
-  const expense = transactions.filter(t => t.type === 'expense').reduce((s,t)=>s+t.amount,0);
+  // Legend
+  document.getElementById('donut-legend').innerHTML = cats.map(c => `
+    <div class="flex items-center gap-2 text-xs" style="color:var(--text2);">
+      <span class="dot" style="background:${(CAT[c]||CAT.other).color};"></span>
+      ${(CAT[c]||CAT.other).label}: ₾${expByCat[c].toFixed(2)}
+    </div>`).join('');
+
+  // Bar: income vs expense
+  const income  = transactions.filter(t => t.type === 'income').reduce((s,t) => s+t.amount, 0);
+  const expense = transactions.filter(t => t.type === 'expense').reduce((s,t) => s+t.amount, 0);
+
   if (barChart) barChart.destroy();
-  const bcCtx = document.getElementById('bar-chart');
-  if (bcCtx) {
-    barChart = new Chart(bcCtx.getContext('2d'), {
-      type: 'bar',
-      data: { labels: ['შემოსავალი', 'ხარჯი'], datasets: [{ data: [income, expense], backgroundColor: ['#4ade80', '#f87171'] }] },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+  const bc = document.getElementById('bar-chart').getContext('2d');
+  barChart = new Chart(bc, {
+    type: 'bar',
+    data: {
+      labels: ['შემოსავალი', 'ხარჯი'],
+      datasets:[{
+        data:[income, expense],
+        backgroundColor: ['rgba(74,222,128,0.7)', 'rgba(248,113,113,0.7)'],
+        borderColor: ['#4ade80','#f87171'], borderWidth:2, borderRadius:8,
+      }]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{ backgroundColor:tooltipBg, titleColor:tooltipColor, bodyColor:tooltipColor, callbacks:{ label: ctx => ` ₾${ctx.parsed.y.toFixed(2)}` } } },
+      scales:{
+        x:{ ticks:{color:textColor, font:{family:'Syne'}}, grid:{color:gridColor} },
+        y:{ ticks:{color:textColor, callback: v => '₾'+v}, grid:{color:gridColor} }
+      }
+    }
+  });
+
+  // Line: balance over time
+  const sorted = [...transactions].sort((a,b) => new Date(a.date)-new Date(b.date));
+  let running = 0;
+  const points = sorted.map(t => {
+    running += t.type === 'income' ? t.amount : -t.amount;
+    return { date: t.date, bal: running };
+  });
+
+  if (lineChart) lineChart.destroy();
+  const lc = document.getElementById('line-chart').getContext('2d');
+  if (points.length) {
+    lineChart = new Chart(lc, {
+      type: 'line',
+      data: {
+        labels: points.map(p => p.date),
+        datasets:[{
+          label:'ბალანსი',
+          data: points.map(p => p.bal),
+          borderColor:'#d9a04e', backgroundColor:'rgba(217,160,78,0.1)',
+          borderWidth:2.5, fill:true, tension:0.4,
+          pointBackgroundColor:'#d9a04e', pointRadius:4, pointHoverRadius:6
+        }]
+      },
+      options: {
+        responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false}, tooltip:{ backgroundColor:tooltipBg, titleColor:tooltipColor, bodyColor:tooltipColor, callbacks:{ label: ctx => ` ₾${ctx.parsed.y.toFixed(2)}` } } },
+        scales:{
+          x:{ ticks:{color:textColor, maxTicksLimit:8, font:{size:11}}, grid:{color:gridColor} },
+          y:{ ticks:{color:textColor, callback: v => '₾'+v}, grid:{color:gridColor} }
+        }
+      }
     });
+  } else {
+    lc.canvas.parentElement.innerHTML = `<div class="flex items-center justify-center h-full" style="color:var(--text3); font-size:0.8rem; font-family:'Syne',sans-serif;">ჩანაწერები ჯერ არ გაქვს</div>`;
   }
 }
 
+// ─── Persist ──────────────────────────────────────────────────────
 function save() {
   localStorage.setItem('ft_transactions', JSON.stringify(transactions));
-  localStorage.setItem('ft_goals', JSON.stringify(goals));
+  localStorage.setItem('ft_goals',        JSON.stringify(goals));
+}
+
+// ─── Demo data if first visit ─────────────────────────────────────
+if (!transactions.length) {
+  const demo = [
+    { id:1, type:'income',  desc:'ხელფასი - მარტი', amount:3200, cat:'salary',        date:'2026-03-01' },
+    { id:2, type:'expense', desc:'ალდი - საკვები',   amount:187,  cat:'food',          date:'2026-03-03' },
+    { id:3, type:'expense', desc:'ავტობუსის ბარათი', amount:30,   cat:'transport',     date:'2026-03-05' },
+    { id:4, type:'expense', desc:'კინო',              amount:25,   cat:'entertainment', date:'2026-03-07' },
+    { id:5, type:'income',  desc:'ფრილანს პროექტი',  amount:850,  cat:'freelance',     date:'2026-03-10' },
+    { id:6, type:'expense', desc:'ფარმაცია',          amount:60,   cat:'health',        date:'2026-03-12' },
+    { id:7, type:'expense', desc:'შოპინგ მოლი',       amount:210,  cat:'shopping',      date:'2026-03-15' },
+    { id:8, type:'expense', desc:'ელექტროობა',        amount:95,   cat:'utilities',     date:'2026-03-18' },
+  ];
+  transactions = demo;
+  goals = [
+    { id:1, name:'ახალი ტელეფონი', amount:2000, emoji:'📱', deadline:'2026-06-30' },
+    { id:2, name:'სამოგზაურო ფონდი', amount:5000, emoji:'✈️', deadline:'2026-12-31' },
+  ];
+  save();
+  updateStats();
+  renderTransactions();
+  renderGoals();
 }
 </script>
 </body>
