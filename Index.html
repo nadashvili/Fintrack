@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="ka" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finance Tracker · პერსონალური ფინანსები</title>
+
+<!-- PWA Meta Tags -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#d9a04e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="applogos.png">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: {
+      extend: {
+        fontFamily: {
+          display: ['Syne', 'sans-serif'],
+          body: ['DM Sans', 'sans-serif'],
+        },
+        colors: {
+          sand: { 50:'#fdf8f0', 100:'#f9eedb', 200:'#f1d9b0', 300:'#e5be7e', 400:'#d9a04e', 500:'#cc8530', 600:'#b56d22', 700:'#93541c', 800:'#76421c', 900:'#5f361a' },
+          slate2: { 800:'#1e2538', 850:'#161b2a', 900:'#0f1322', 950:'#080a14' },
+        }
+      }
+    }
+  }
+</script>
+<style>
+  :root {
+    --bg: #0f1322; --bg2: #161b2a; --bg3: #1e2538;
+    --card: rgba(30, 37, 56, 0.7); --card2: #242d46;
+    --text: #e8dcc8; --text2: #9ba3be; --text3: #5c6482;
+    --accent: #d9a04e; --accent2: #e8b86d; --accent3: #c4873a;
+    --green: #4ade80; --red: #f87171; --blue: #60a5fa;
+    --border: rgba(255,255,255,0.06);
+    --glow: rgba(217,160,78,0.12);
+    --blur: blur(12px);
+  }
+  .light-mode {
+    --bg: #f7f4ed; --bg2: #eae3d2; --bg3: #dfd6be;
+    --card: rgba(255, 255, 255, 0.8); --card2: #fdfaf4;
+    --text: #231e1c; --text2: #65594f; --text3: #958475;
+    --accent: #b5671a; --accent2: #c97b2a; --accent3: #9a5512;
+    --border: rgba(0,0,0,0.06);
+    --glow: rgba(181,103,26,0.08);
+    --blur: blur(12px);
+  }
+  * { box-sizing: border-box; }
+  html, body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height:100vh; transition: background 0.3s ease; }
+  
+  /* Modern Glassmorphism Card Style */
+  .card {
+    background: var(--card);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  }
+  .card:hover { border-color: rgba(217,160,78,0.3); transform: translateY(-2px); box-shadow: 0 12px 30px rgba(0,0,0,0.15); }
+
+  .stat-card { position:relative; overflow:hidden; }
+  .stat-card::before {
+    content:''; position:absolute; top:-50%; left:-50%; width:200%; height:200%;
+    background: radial-gradient(circle at 30% 30%, var(--glow), transparent 60%);
+    pointer-events:none;
+  }
+
+  /* Buttons Optimization */
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent3));
+    color: #fff; font-weight:600; border:none; cursor:pointer;
+    transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+    font-family: 'Syne', sans-serif;
+    letter-spacing: 0.02em;
+    box-shadow: 0 4px 12px rgba(217,160,78,0.2);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(217,160,78,0.35); }
+  .btn-primary:active { transform: translateY(0) scale(0.98); }
+
+  .btn-secondary {
+    background: var(--card2); color: var(--text2); border: 1px solid var(--border);
+    cursor:pointer; transition: all 0.2s ease; border-radius: 12px;
+  }
+  .btn-secondary:hover { background: var(--bg3); color: var(--text); border-color: var(--accent); }
+  .btn-secondary.active { background: var(--accent); color:#fff; border-color: var(--accent); box-shadow: 0 4px 10px rgba(217,160,78,0.2); }
+
+  .field {
+    background: var(--bg2); border: 1px solid var(--border); color: var(--text);
+    border-radius: 12px; transition: all 0.2s ease; outline:none;
+  }
+  .field:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(217,160,78,0.15); }
+
+  .tx-item {
+    background: var(--card2); border-radius: 14px; border: 1px solid var(--border);
+    transition: all 0.2s ease; animation: slideIn 0.3s ease-out;
+  }
+  .tx-item:hover { transform: translateX(6px); border-color: rgba(217,160,78,0.3); }
+
+  @keyframes slideIn { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
+
+  .progress-fill {
+    height:100%; border-radius:999px;
+    background: linear-gradient(90deg, var(--accent3), var(--accent2));
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    position:relative; overflow:hidden;
+  }
+
+  .tab-btn {
+    cursor:pointer; transition: all 0.2s ease; border-radius:10px;
+    font-family: 'Syne', sans-serif; font-weight:600; font-size:0.8rem;
+    letter-spacing:0.04em; text-transform:uppercase; padding:8px 16px;
+  }
+  .tab-btn.active { background: var(--accent); color:#fff; box-shadow: 0 4px 10px rgba(217,160,78,0.2); }
+  .tab-btn:not(.active) { color: var(--text2); }
+  .tab-btn:not(.active):hover { color: var(--text); background: var(--card2); }
+
+  .section-label { font-family: 'Syne', sans-serif; font-size:0.75rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color: var(--text3); }
+  .del-btn { opacity: 0.4; transition: all 0.2s; }
+  .tx-item:hover .del-btn { opacity:1; }
+</style>
+</head>
+<body class="min-h-screen pb-12">
+
+<!-- Top Navigation -->
+<nav style="background:var(--card); backdrop-filter:var(--blur); -webkit-backdrop-filter:var(--blur); border-bottom:1px solid var(--border);" class="sticky top-0 z-50 px-6 py-4">
+  <div class="max-w-7xl mx-auto flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl flex items-center justify-center shadow-md" style="background:var(--accent);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      </div>
+      <span class="font-display font-800 text-xl tracking-tight" style="color:var(--text);">FinTrack</span>
+   
+    </div>
+    <div class="flex items-center gap-3">
+      <button onclick="toggleTheme()" class="w-9 h-9 rounded-xl flex items-center justify-center transition-transform active:scale-95" style="background:var(--card2); border:1px solid var(--border);">
+        <span id="theme-icon" class="text-base">🌙</span>
+      </button>
+      <button onclick="clearAll()" class="btn-secondary text-xs px-3 py-2 rounded-xl font-medium" style="color:var(--red); border-color: rgba(248,113,113,0.2);">
+        🗑 გასუფთავება
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- Main Layout -->
+<div class="max-w-7xl mx-auto px-4 py-8">
+
+  <!-- Stat Cards Row -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+    <!-- Balance -->
+    <div class="card stat-card p-6" style="border-color:rgba(217,160,78,0.3);">
+      <div class="section-label mb-2">მთლიანი ბალანსი</div>
+      <div id="stat-balance" class="font-display text-3xl font-800 mb-1" style="color:var(--accent);">₾0.00</div>
+      <div class="text-xs" style="color:var(--text3);">აქტიური ბალანსი</div>
+    </div>
+    <!-- Income -->
+    <div class="card stat-card p-6">
+      <div class="section-label mb-2">შემოსავალი</div>
+      <div id="stat-income" class="font-display text-3xl font-800 mb-1" style="color:var(--green);">₾0.00</div>
+      <div class="text-xs" style="color:var(--text3);">ჯამური შემოსავალი</div>
+    </div>
+    <!-- Expense -->
+    <div class="card stat-card p-6">
+      <div class="section-label mb-2">ხარჯები</div>
+      <div id="stat-expense" class="font-display text-3xl font-800 mb-1" style="color:var(--red);">₾0.00</div>
+      <div class="text-xs" style="color:var(--text3);">ჯამური ხარჯი</div>
+    </div>
+  </div>
+
+  <!-- Tab Navigation -->
+  <div class="flex gap-1 mb-8 p-1.5 rounded-2xl w-fit" style="background:var(--card2); border:1px solid var(--border);">
+    <button class="tab-btn active" onclick="switchTab('transactions')" id="tab-transactions">ტრანზაქციები</button>
+    <button class="tab-btn" onclick="switchTab('analytics')" id="tab-analytics">ანალიტიკა</button>
+    <button class="tab-btn" onclick="switchTab('goals')" id="tab-goals">მიზნები</button>
+  </div>
+
+  <!-- ==================== TAB: TRANSACTIONS ==================== -->
+  <div id="page-transactions">
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+
+      <!-- Add Transaction Form -->
+      <div class="lg:col-span-2 space-y-5">
+        <div class="card p-6">
+          <div class="section-label mb-4">ახალი ჩანაწერი</div>
+
+          <div class="grid grid-cols-2 gap-2 mb-4">
+            <button onclick="setType('income')" id="type-income" class="btn-secondary py-3 text-xs font-bold active">
+              ↑ შემოსავალი
+            </button>
+            <button onclick="setType('expense')" id="type-expense" class="btn-secondary py-3 text-xs font-bold">
+              ↓ ხარჯი
+            </button>
+          </div>
+
+          <div class="mb-3">
+            <label class="section-label block mb-1.5">აღწერა</label>
+            <input id="f-desc" type="text" class="field w-full px-4 py-3 text-sm" placeholder="მაგ: სუპერმარკეტი...">
+          </div>
+
+          <div class="mb-3">
+            <label class="section-label block mb-1.5">თანხა (₾)</label>
+            <input id="f-amount" type="number" class="field w-full px-4 py-3 text-sm" placeholder="0.00" min="0" step="0.01">
+          </div>
+
+          <div class="mb-3">
+            <label class="section-label block mb-1.5">კატეგორია</label>
+            <select id="f-category" class="field w-full px-4 py-3 text-sm">
+              <option value="food">🍔 საკვები</option>
+              <option value="transport">🚗 ტრანსპორტი</option>
+              <option value="entertainment">🎭 გართობა</option>
+              <option value="health">💊 ჯანმრთელობა</option>
+              <option value="shopping">🛍 შოპინგი</option>
+              <option value="utilities">🏠 კომუნალური</option>
+              <option value="education">📚 განათლება</option>
+              <option value="salary">💼 ხელფასი</option>
+              <option value="freelance">💻 ფრილანს</option>
+              <option value="gift">🎁 საჩუქარი</option>
+              <option value="other">📦 სხვა</option>
+            </select>
+          </div>
+
+          <div class="mb-5">
+            <label class="section-label block mb-1.5">თარიღი</label>
+            <input id="f-date" type="date" class="field w-full px-4 py-3 text-sm">
+          </div>
+
+          <button onclick="addTransaction()" class="btn-primary w-full py-3.5 rounded-xl text-sm">
+            + დამატება
+          </button>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="card p-5">
+          <div class="section-label mb-3">ფილტრაცია</div>
+          <div class="flex gap-2 mb-3">
+            <button onclick="setFilter('all')" id="filter-all" class="btn-secondary text-xs px-4 py-2 active">ყველა</button>
+            <button onclick="setFilter('income')" id="filter-income" class="btn-secondary text-xs px-4 py-2">შემოსავალი</button>
+            <button onclick="setFilter('expense')" id="filter-expense" class="btn-secondary text-xs px-4 py-2">ხარჯი</button>
+          </div>
+          <select id="filter-category" onchange="renderTransactions()" class="field w-full px-3 py-2.5 text-xs mt-1">
+            <option value="all">ყველა კატეგორია</option>
+            <option value="food">🍔 საკვები</option>
+            <option value="transport">🚗 ტრანსპორტი</option>
+            <option value="entertainment">🎭 გართობა</option>
+            <option value="health">💊 ჯანმრთელობა</option>
+            <option value="shopping">🛍 შოპინგი</option>
+            <option value="utilities">🏠 კომუნალური</option>
+            <option value="education">📚 განათლება</option>
+            <option value="salary">💼 ხელფასი</option>
+            <option value="freelance">💻 ფრილანს</option>
+            <option value="gift">🎁 საჩუქარი</option>
+            <option value="other">📦 სხვა</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Transaction List -->
+      <div class="lg:col-span-3">
+        <div class="card p-6 h-full flex flex-col">
+          <div class="flex items-center justify-between mb-5">
+            <div class="section-label">ისტორია</div>
+            <div id="tx-count" class="text-xs px-3 py-1 rounded-full font-medium" style="background:var(--card2); color:var(--text2);">0 ჩანაწერი</div>
+          </div>
+          <div id="tx-list" class="space-y-2 overflow-y-auto pr-1 flex-1 max-h-[560px]">
+            <!-- Dynamic Content -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== TAB: ANALYTICS ==================== -->
+  <div id="page-analytics" style="display:none;">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="card p-6">
+        <div class="section-label mb-4">ხარჯების სტრუქტურა</div>
+        <div class="relative h-[280px]">
+          <canvas id="donut-chart"></canvas>
+        </div>
+        <div id="donut-legend" class="mt-4 grid grid-cols-2 gap-2 max-h-[100px] overflow-y-auto"></div>
+      </div>
+      <div class="card p-6">
+        <div class="section-label mb-4">ბალანსის პროპორცია</div>
+        <div class="relative h-[280px]">
+          <canvas id="bar-chart"></canvas>
+        </div>
+      </div>
+      <div class="card p-6 lg:col-span-2">
+        <div class="section-label mb-4">დინამიკის გრაფიკი</div>
+        <div class="relative h-[250px]">
+          <canvas id="line-chart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== TAB: GOALS ==================== -->
+  <div id="page-goals" style="display:none;">
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+      <div class="lg:col-span-2 space-y-5">
+        <div class="card p-6">
+          <div class="section-label mb-4">ახალი ფინანსური მიზანი</div>
+          <div class="mb-3">
+            <label class="section-label block mb-1.5">მიზანი</label>
+            <input id="g-name" type="text" class="field w-full px-4 py-3 text-sm" placeholder="მაგ: ახალი ნოუთბუქი...">
+          </div>
+          <div class="mb-3">
+            <label class="section-label block mb-1.5">თანხა (₾)</label>
+            <input id="g-amount" type="number" class="field w-full px-4 py-3 text-sm" placeholder="0.00" min="1">
+          </div>
+          <div class="mb-3">
+            <label class="section-label block mb-1.5">ვიზუალიზაცია (Emoji)</label>
+            <input id="g-emoji" type="text" class="field w-full px-4 py-3 text-sm" placeholder="💻" maxlength="2">
+          </div>
+          <div class="mb-5">
+            <label class="section-label block mb-1.5">სამიზნე თარიღი</label>
+            <input id="g-deadline" type="date" class="field w-full px-4 py-3 text-sm">
+          </div>
+          <button onclick="addGoal()" class="btn-primary w-full py-3.5 rounded-xl text-sm">
+            🎯 მიზნის დასახვა
+          </button>
+        </div>
+
+        <div class="card p-5">
+          <div class="section-label mb-2">ხელმისაწვდომი სახსრები</div>
+          <div id="goal-balance-display" class="font-display text-2xl font-800" style="color:var(--accent);">₾0.00</div>
+        </div>
+      </div>
+
+      <div class="lg:col-span-3">
+        <div class="section-label mb-4">მიმდინარე მიზნები</div>
+        <div id="goals-list" class="space-y-4">
+          <!-- Dynamic Content -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Toast notification System -->
+<div id="toast" class="fixed bottom-6 right-6 z-50 px-5 py-3.5 rounded-xl text-sm font-600 opacity-0 pointer-events-none transition-all duration-300 shadow-xl"
+     style="background:var(--accent); color:#fff; font-family:'Syne',sans-serif; transform:translateY(20px);">
+</div>
+
+<script>
+// PWA Service Worker Registration
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .then(reg => console.log('Service Worker რეგისტრირებულია წარმატებით!'))
+      .catch(err => console.log('Service Worker რეგისტრაციის შეცდომა:', err));
+  });
+}
+
+// ─── State და მენეჯმენტი ───────────────────────────────────────────
+let transactions = JSON.parse(localStorage.getItem('ft_transactions') || '[]');
+let goals        = JSON.parse(localStorage.getItem('ft_goals')        || '[]');
+let currentType  = 'income';
+let currentFilter = 'all';
+let isLight = false;
+let donutChart = null, barChart = null, lineChart = null;
+
+const CAT = {
+  food:          { label:'საკვები',      icon:'🍔', color:'#f97316' },
+  transport:     { label:'ტრანსპორტი',  icon:'🚗', color:'#3b82f6' },
+  entertainment: { label:'გართობა',     icon:'🎭', color:'#a855f7' },
+  health:        { label:'ჯანმრთელობა', icon:'💊', color:'#ec4899' },
+  shopping:      { label:'შოპინგი',     icon:'🛍', color:'#06b6d4' },
+  utilities:     { label:'კომუნალური',  icon:'🏠', color:'#6366f1' },
+  education:     { label:'განათლება',   icon:'📚', color:'#84cc16' },
+  salary:        { label:'ხელფასი',     icon:'💼', color:'#22c55e' },
+  freelance:     { label:'ფრილანს',     icon:'💻', color:'#10b981' },
+  gift:          { label:'საჩუქარი',    icon:'🎁', color:'#f43f5e' },
+  other:         { label:'სხვა',        icon:'📦', color:'#94a3b8' },
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+  updateStats();
+  renderTransactions();
+  renderGoals();
+});
+
+function toggleTheme() {
+  isLight = !isLight;
+  document.body.classList.toggle('light-mode', isLight);
+  document.getElementById('theme-icon').textContent = isLight ? '☀️' : '🌙';
+  if (document.getElementById('page-analytics').style.display !== 'none') updateCharts();
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.opacity = '1';
+  t.style.transform = 'translateY(0)';
+  setTimeout(() => {
+    t.style.opacity = '0';
+    t.style.transform = 'translateY(20px)';
+  }, 2500);
+}
+
+function switchTab(tab) {
+  ['transactions','analytics','goals'].forEach(t => {
+    document.getElementById('page-' + t).style.display = t === tab ? '' : 'none';
+    document.getElementById('tab-' + t).classList.toggle('active', t === tab);
+  });
+  if (tab === 'analytics') updateCharts();
+}
+
+function setType(t) {
+  currentType = t;
+  document.getElementById('type-income').classList.toggle('active', t === 'income');
+  document.getElementById('type-expense').classList.toggle('active', t === 'expense');
+}
+
+function setFilter(f) {
+  currentFilter = f;
+  ['all','income','expense'].forEach(x => {
+    document.getElementById('filter-' + x).classList.toggle('active', x === f);
+  });
+  renderTransactions();
+}
+
+function addTransaction() {
+  const desc = document.getElementById('f-desc').value.trim();
+  const amount = parseFloat(document.getElementById('f-amount').value);
+  const cat = document.getElementById('f-category').value;
+  const date = document.getElementById('f-date').value;
+
+  if (!desc) return showToast('⚠️ შეიყვანე აღწერა');
+  if (!amount || amount <= 0) return showToast('⚠️ შეიყვანე სწორი თანხა');
+
+  transactions.unshift({ id: Date.now(), type: currentType, desc, amount, cat, date });
+  save(); updateStats(); renderTransactions();
+  document.getElementById('f-desc').value = '';
+  document.getElementById('f-amount').value = '';
+  showToast('✅ ჩანაწერი დაემატა');
+}
+
+function deleteTransaction(id) {
+  transactions = transactions.filter(t => t.id !== id);
+  save(); updateStats(); renderTransactions();
+  showToast('🗑 ჩანაწერი წაიშალა');
+}
+
+function clearAll() {
+  if (!confirm('ნამდვილად გსურს ყველა მონაცემის წაშლა?')) return;
+  transactions = []; goals = []; save(); updateStats(); renderTransactions(); renderGoals();
+  showToast('🗑 ბაზა გასუფთავდა');
+}
+
+function updateStats() {
+  const income = transactions.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+  const expense = transactions.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+  const balance = income - expense;
+
+  document.getElementById('stat-balance').textContent = '₾' + balance.toFixed(2);
+  document.getElementById('stat-income').textContent = '₾' + income.toFixed(2);
+  document.getElementById('stat-expense').textContent = '₾' + expense.toFixed(2);
+  document.getElementById('goal-balance-display').textContent = '₾' + balance.toFixed(2);
+  renderGoals();
+}
+
+function renderTransactions() {
+  const catFilter = document.getElementById('filter-category').value;
+  let list = [...transactions];
+  if (currentFilter !== 'all') list = list.filter(t => t.type === currentFilter);
+  if (catFilter !== 'all') list = list.filter(t => t.cat === catFilter);
+
+  const container = document.getElementById('tx-list');
+  document.getElementById('tx-count').textContent = list.length + ' ჩანაწერი';
+
+  if (!list.length) {
+    container.innerHTML = `<div class="text-center py-12 text-sm" style="color:var(--text3);">ჩანაწერები არ მოიძებნა</div>`;
+    return;
+  }
+
+  container.innerHTML = list.map(tx => {
+    const meta = CAT[tx.cat] || CAT.other;
+    return `
+    <div class="tx-item flex items-center gap-3 p-3.5">
+      <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0" style="background:${meta.color}15;">${meta.icon}</div>
+      <div class="flex-1 min-w-0">
+        <div class="text-sm font-500 truncate">${tx.desc}</div>
+        <div class="text-xs mt-0.5 flex gap-2" style="color:var(--text3);"><span>${meta.label}</span><span>·</span><span>${tx.date}</span></div>
+      </div>
+      <div class="text-right font-display font-700 text-sm ${tx.type === 'income' ? 'text-green-400' : 'text-red-400'}">
+        ${tx.type === 'income' ? '+' : '-'}₾${tx.amount.toFixed(2)}
+      </div>
+      <button onclick="deleteTransaction(${tx.id})" class="del-btn w-7 h-7 rounded-lg flex items-center justify-center text-xs ml-1" style="background:rgba(248,113,113,0.1); color:var(--red);">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function addGoal() {
+  const name = document.getElementById('g-name').value.trim();
+  const amount = parseFloat(document.getElementById('g-amount').value);
+  const emoji = document.getElementById('g-emoji').value.trim() || '🎯';
+  const deadline = document.getElementById('g-deadline').value;
+
+  if (!name || !amount) return showToast('⚠️ შეავსე ველები სწორად');
+  goals.push({ id: Date.now(), name, amount, emoji, deadline });
+  save(); renderGoals();
+  document.getElementById('g-name').value = '';
+  document.getElementById('g-amount').value = '';
+  showToast('🎯 მიზანი დასახულია!');
+}
+
+function deleteGoal(id) {
+  goals = goals.filter(g => g.id !== id);
+  save(); renderGoals();
+}
+
+function renderGoals() {
+  const income = transactions.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+  const expense = transactions.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+  const balance = income - expense;
+
+  const container = document.getElementById('goals-list');
+  if (!goals.length) {
+    container.innerHTML = `<div class="text-center py-12 text-sm" style="color:var(--text3);">მიზნები ჯერ არ გაქვს</div>`;
+    return;
+  }
+
+  container.innerHTML = goals.map(g => {
+    const pct = Math.min(100, balance <= 0 ? 0 : (balance / g.amount) * 100);
+    return `
+    <div class="card p-5">
+      <div class="flex justify-between items-start mb-3">
+        <div class="flex gap-3">
+          <div class="text-2xl">${g.emoji}</div>
+          <div>
+            <div class="text-sm font-bold">${g.name}</div>
+            <div class="text-xs" style="color:var(--text3);">სამიზნე: ₾${g.amount.toFixed(2)}</div>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-bold" style="color:var(--accent);">${pct.toFixed(0)}%</span>
+          <button onclick="deleteGoal(${g.id})" style="color:var(--red);" class="text-xs">✕</button>
+        </div>
+      </div>
+      <div class="w-full rounded-full bg-slate-800" style="height:6px;">
+        <div class="progress-fill" style="width:${pct}%;"></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function updateCharts() {
+  if (typeof Chart === 'undefined') return; // უსაფრთხოება ოფლაინ რეჟიმისთვის
+  const textColor = isLight ? '#65594f' : '#9ba3be';
+  
+  const expByCat = {};
+  transactions.filter(t => t.type === 'expense').forEach(t => expByCat[t.cat] = (expByCat[t.cat] || 0) + t.amount);
+  
+  // Donut Chart
+  if (donutChart) donutChart.destroy();
+  const dcCtx = document.getElementById('donut-chart');
+  if (dcCtx) {
+    donutChart = new Chart(dcCtx.getContext('2d'), {
+      type: 'doughnut',
+      data: {
+        labels: Object.keys(expByCat).map(c => (CAT[c]||CAT.other).label),
+        datasets: [{ data: Object.values(expByCat), backgroundColor: Object.keys(expByCat).map(c => (CAT[c]||CAT.other).color), borderWidth: 0 }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+    });
+  }
+
+  // Bar Chart
+  const income = transactions.filter(t => t.type === 'income').reduce((s,t)=>s+t.amount,0);
+  const expense = transactions.filter(t => t.type === 'expense').reduce((s,t)=>s+t.amount,0);
+  if (barChart) barChart.destroy();
+  const bcCtx = document.getElementById('bar-chart');
+  if (bcCtx) {
+    barChart = new Chart(bcCtx.getContext('2d'), {
+      type: 'bar',
+      data: { labels: ['შემოსავალი', 'ხარჯი'], datasets: [{ data: [income, expense], backgroundColor: ['#4ade80', '#f87171'] }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+    });
+  }
+}
+
+function save() {
+  localStorage.setItem('ft_transactions', JSON.stringify(transactions));
+  localStorage.setItem('ft_goals', JSON.stringify(goals));
+}
+</script>
+</body>
+</html>
